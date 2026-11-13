@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Brief MV Cahaya untuk Negeri · PK-288 LPDP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&display=swap">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <div class="w">
+      <p class="eyebrow">Brief Footage MV · Angkatan PK-288 LPDP</p>
+      <h1>Cahaya untuk Negeri</h1>
+      
+      <div class="master-audio">
+        <p class="full">Putar Lagu Lengkap</p>
+        <audio controls preload="metadata" src="audio/lagu-lengkap.m4a"></audio>
+      </div>
+
+      <ul class="how">
+        <li>Pilih satu lirik lewat polling WhatsApp.</li>
+        <li>Lirik yang diberi latar biru direkam oleh semua peserta, tanpa polling.</li>
+      </ul>
+    </div>
+  </header>
+
+  <div class="nav-bar">
+    <div class="w">
+      <nav id="nav" aria-label="Bagian lagu"></nav>
+    </div>
+  </div>
+
+  <main class="w">
+    <section id="yt-section" class="yt-section" hidden>
+      <h2 id="ref-video">Video Referensi</h2>
+      <div id="yt-list" class="yt-grid"></div>
+    </section>
+
+    <div id="list"></div>
+    <footer>Rekam dengan footage yang sudah kamu pilih, lalu kirim sesuai arahan panitia.</footer>
+  </main>
+
+  <script src="data.js"></script>
+  <script>
+    function isVid(u) {
+      return /\.(mp4|webm|mov|m4v)(\?|$)/i.test(u);
+    }
+    function pad(n) {
+      return n < 10 ? "0" + n : "" + n;
+    }
+    function audioSrc(a, n) {
+      if (!a) return "";
+      if (typeof a === "string") return /^audio\/|^https?:\/\//i.test(a) ? a : "audio/" + a;
+      return "audio/" + pad(n) + ".m4a";
+    }
+    function txt(v) {
+      return v ? v : '<span class="todo">Menyusul</span>';
+    }
+    function getYtId(url) {
+      if (!url) return "";
+      var m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?.*v=|embed\/|shorts\/))([a-zA-Z0-9_-]{11})/);
+      return m ? m[1] : (url.length === 11 ? url : "");
+    }
+
+    var h = "", nav = "", last = -1;
+    var ytIndex = 0;
+
+    function renderYt(idx) {
+      var total = YOUTUBE_REFS.length;
+      ytIndex = (idx + total) % total;
+      var v = YOUTUBE_REFS[ytIndex];
+      var title = v[0] || "Video Referensi";
+      var rawUrl = v[1] || "";
+      var desc = v[2] || "";
+      var vidId = getYtId(rawUrl);
+      var yh = '<article class="yt-card">';
+      if (vidId) {
+        yh += '<div class="yt-frame"><iframe src="https://www.youtube-nocookie.com/embed/' + vidId + '" title="' + title + '" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>';
+      }
+      yh += '<div class="yt-body">';
+      yh += '<div class="yt-head">';
+      yh += '<div><span class="yt-count">Video ' + (ytIndex + 1) + ' dari ' + total + '</span><h3>' + title + '</h3>';
+      if (desc) {
+        yh += '<p>' + desc + '</p>';
+      }
+      yh += '</div>';
+      if (total > 1) {
+        yh += '<div class="yt-controls">';
+        yh += '<button type="button" class="yt-btn" onclick="renderYt(ytIndex - 1)" aria-label="Video sebelumnya">← Prev</button>';
+        yh += '<button type="button" class="yt-btn yt-btn-next" onclick="renderYt(ytIndex + 1)" aria-label="Video berikutnya">Next →</button>';
+        yh += '</div>';
+      }
+      yh += '</div></div></article>';
+      document.getElementById("yt-list").innerHTML = yh;
+    }
+
+    if (typeof YOUTUBE_REFS !== "undefined" && YOUTUBE_REFS.length) {
+      renderYt(0);
+      document.getElementById("yt-section").hidden = false;
+      nav += '<a href="#ref-video">Video Referensi</a>';
+    }
+
+    LYRICS.forEach(function (x) {
+      var n = x[0], sec = x[1], g = x[7], refs = x[8];
+      if (sec !== last) {
+        h += '<h2 id="s' + sec + '">' + SECTIONS[sec] + '</h2>';
+        nav += '<a href="#s' + sec + '">' + SECTIONS[sec] + '</a>';
+        last = sec;
+      }
+      h += '<article class="row' + (g ? ' grid' : '') + '" id="l' + n + '">';
+      h += '<div class="tc">' + (x[2] || "–") + '<small>Lirik ' + n + '</small></div>';
+      h += '<div>';
+      h += '<p class="lyric">' + x[3] + '</p>';
+      h += '<div class="meta"><span class="who">' + (g ? 'Semua peserta merekam bagian ini' : 'Peran utama · Maksimal 2 orang') + '</span></div>';
+      var aud = audioSrc(x[6], n);
+      h += aud ? '<audio controls preload="none" src="' + aud + '"></audio>' : '<p class="who">Audio bagian ini menyusul</p>';
+      if (refs && refs.length) {
+        h += '<div class="refs">';
+        refs.forEach(function (u) {
+          h += isVid(u)
+            ? '<video controls playsinline preload="metadata" src="' + u + '"></video>'
+            : '<a href="' + u + '" target="_blank" rel="noopener"><img loading="lazy" alt="Referensi lirik ' + n + '" src="' + u + '"></a>';
+        });
+        h += '</div>';
+      }
+      h += '</div></article>';
+    });
+
+    document.getElementById("list").innerHTML = h;
+    document.getElementById("nav").innerHTML = nav;
+
+    // Hanya satu audio/video yang berbunyi pada satu waktu
+    document.addEventListener("play", function (e) {
+      document.querySelectorAll("audio,video").forEach(function (m) {
+        if (m !== e.target) m.pause();
+      });
+    }, true);
+  </script>
+</body>
+</html>
