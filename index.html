@@ -114,7 +114,6 @@
       h += '<div class="tc">' + (x[2] || "–") + '<small>Lirik ' + n + '</small></div>';
       h += '<div>';
       h += '<p class="lyric">' + x[3] + '</p>';
-      h += '<div class="meta"><span class="who">' + (g ? 'Semua peserta merekam bagian ini' : 'Peran utama · Maksimal 2 orang') + '</span></div>';
       var aud = audioSrc(x[6], n);
       h += aud ? '<audio controls preload="none" src="' + aud + '"></audio>' : '<p class="who">Audio bagian ini menyusul</p>';
       if (refs && refs.length) {
